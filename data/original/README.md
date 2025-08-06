@@ -9,7 +9,9 @@
 -   bear_incidents_young_bears_r1-r6.csv
 -   bear_sightings_r7.csv
 
-以下のデータは、国土交通省が[国土数値情報](https://nlftp.mlit.go.jp/)の[土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a-2021.html#!)（L03-a）、[土地利用細分メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-b-2021.html#!)（L03-b）、[行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2025.html#!)（N03）で公開しているものです。ライセンスはいずれも[CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)です。
+以下のデータは、容量の関係で**リポジトリには含めていません**。
+
+国土交通省[国土数値情報](https://nlftp.mlit.go.jp/)の[土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a-2021.html#!)（L03-a）、[土地利用細分メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-b-2021.html#!)（L03-b）、[行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2025.html#!)（N03）からデータをダウンロードして、GeoJSONファイルをこのディレクトリに入れておきます。
 
 -   L03-a-21_5436.geojson
 -   L03-a-21_5536.geojson
