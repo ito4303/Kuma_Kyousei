@@ -4,3 +4,4 @@
 
 -   scripts/preprocess.R: 石川県クマ出没データの前処理
 -   scripts/prediction_Komatu.R: 小松市のクマ出没確率予測マップ
+-   Kuma_map: 石川県クマ出没データを地図で表示するウェブアプリ
