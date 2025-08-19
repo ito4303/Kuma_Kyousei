@@ -47,13 +47,13 @@ landuse <- landuse_files %>%
 ishikawa <- sf::st_read(ishikawa_pref_file, quiet = TRUE)
 
 # 金沢市の行政区域を抽出
-komatsu <- ishikawa |>
+kanazawa <- ishikawa |>
   dplyr::filter(N03_004 == "金沢市") |>
   sf::st_union()
 
 # 土地利用データのうち金沢市に重なる部分を抽出
-int <- sf::st_intersects(landuse, komatsu, sparse = FALSE)
-landuse_komatsu <- landuse[int, ]
+int <- sf::st_intersects(landuse, kanazawa, sparse = FALSE)
+landuse_kanazawa <- landuse[int, ]
 
 # クマ出没データから金沢市のものを抽出し、
 # 3次メッシュコードと年ごとに出没の有無を集計
@@ -66,7 +66,7 @@ p_sum <- kuma_data |>
 
 # 金沢市の土地利用データから、3次メッシュコードと地理情報だけの
 # データを作成
-geometry <- landuse_komatsu |>
+geometry <- landuse_kanazawa |>
   dplyr::select(mesh_code, geometry)
 
 # 3次メッシュコードごとに、6年間の出没ありの年の割合を計算
@@ -92,7 +92,7 @@ geometry |>
 # forest2: 3次メッシュ中の森林面積(km^2^)の2乗
 # water:   3次メッシュ中の河川地及び湖沼面積(km^2^)
 # water2:  3次メッシュ中の河川地及び湖沼面積(km^2^)の2乗
-env <- landuse_komatsu |>
+env <- landuse_kanazawa |>
   dplyr::mutate(forest = `森林`,
                 forest2 = `森林`^2,
                 water = `河川地及び湖沼`,
@@ -103,7 +103,7 @@ env <- landuse_komatsu |>
 # 3次メッシュコードと年のすべての組み合わせをつくっておき、
 # これに出没のありなしデータと環境データを結合
 p_year <- tidyr::expand_grid(
-  mesh_code = unique(landuse_komatsu$mesh_code),
+  mesh_code = unique(landuse_kanazawa$mesh_code),
   year = 2019:2024
 ) |>
   dplyr::left_join(p_sum, by = c("mesh_code", "year")) |>
@@ -113,7 +113,7 @@ p_year <- tidyr::expand_grid(
   dplyr::mutate(buna_poor = if_else(year == 2020, 1, 0))
 
 # sdmTMBで使用するメッシュ作成のため、UTM座標系の座標を追加
-coord <- landuse_komatsu |>
+coord <- landuse_kanazawa |>
   sf::st_transform(4326) |>
   sf::st_make_valid() |>
   sf::st_centroid() |>
@@ -125,7 +125,7 @@ coord <- landuse_komatsu |>
 # UTM座標に3次メッシュコードを結合
 coord2 <- coord |>
   bind_cols(
-    landuse_komatsu |>
+    landuse_kanazawa |>
       dplyr::select(mesh_code)
     )
 # 出没あり・なしデータにUTM座標を結合
