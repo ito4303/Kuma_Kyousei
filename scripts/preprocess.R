@@ -58,17 +58,11 @@ read_fun <- function(file_path) {
                         .default = as.integer(NA))),
       # IDが年をまたいでも重複しないように、年 + ID とします。
       ID = str_c(`出没年`, ID, sep = "-"),
-      # 500mメッシュコードが空白、または"544000000"か"554000000"に
-      # なっているところを、jpmesh::coords_to_mesh()を使用して、
+      # 500mメッシュコードは、jpmesh::coords_to_mesh()を使用して、
       # 経度・緯度から計算し直します。
-      `500mメッシュコード` =
-                  if_else(is.na(`500mメッシュコード`) |
-                          `500mメッシュコード` == 544000000 |
-                          `500mメッシュコード` == 554000000,
-                                coords_to_mesh(`経度`, `緯度`,
-                                               to_mesh_size = 0.5) |>
-                                  as.character(),
-                                as.character(`500mメッシュコード`))
+      `500mメッシュコード` = coords_to_mesh(`経度`, `緯度`,
+                                     to_mesh_size = 0.5) |>
+                             as.character()
     ) |>
     as_tibble()
 }
