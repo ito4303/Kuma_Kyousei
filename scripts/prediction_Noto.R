@@ -179,19 +179,11 @@ plot(mesh)
 
 # モデルの作成とあてはめ
 # モデル1: ブナの豊凶(B)を説明変数とするモデル
-# モデル2: 森林面積(F)とその2乗、ブナの豊凶を説明変数とするモデル
-# モデル3: 森林面積(F)とその2乗、河川・湖沼面積(W)、ブナの豊凶(B)を説明変数とするモデル
+# モデル2: 森林面積(F)とその2乗を説明変数とするモデル
+# モデル3: 森林面積(F)とその2乗、ブナの豊凶(B)を説明変数とするモデル
+# モデル4: 森林面積(F)とその2乗、河川・湖沼面積(W)、ブナの豊凶(B)を説明変数とするモデル
 # ともに、これら説明変数のほかに、空間の変量効果をモデルに組み込んでいます。
-# 時間の変量効果は、加えても係数が0と推定されましたので、抜いてあります。
-fit0 <- sdmTMB(present ~ 1,
-               data = p_year_coord,
-               mesh = mesh,
-               family = binomial(link = "logit"),
-               spatial = "on",
-               time = "year",
-               time_varying = ~ 1,
-               time_varying_type = "ar1",
-               extra_time = 2025)
+
 fit1 <- sdmTMB(present ~ buna_poor,
               data = p_year_coord,
               mesh = mesh,
@@ -201,7 +193,7 @@ fit1 <- sdmTMB(present ~ buna_poor,
               time_varying = ~ 1,
               time_varying_type = "ar1",
               extra_time = 2025)
-fit2 <- sdmTMB(present ~ forest + forest2 + buna_poor,
+fit2 <- sdmTMB(present ~ forest + forest2,
               data = p_year_coord,
               mesh = mesh,
               family = binomial(link = "logit"),
@@ -210,7 +202,7 @@ fit2 <- sdmTMB(present ~ forest + forest2 + buna_poor,
               time_varying = ~ 1,
               time_varying_type = "ar1",
               extra_time = 2025)
-fit3 <- sdmTMB(present ~ forest + forest2 + water + buna_poor,
+fit3 <- sdmTMB(present ~ forest + forest2 + buna_poor,
                data = p_year_coord,
                mesh = mesh,
                family = binomial(link = "logit"),
@@ -219,9 +211,15 @@ fit3 <- sdmTMB(present ~ forest + forest2 + water + buna_poor,
                time_varying = ~ 1,
                time_varying_type = "ar1",
                extra_time = 2025)
-
-# モデル0のあてはめ結果のチェック
-sanity(fit0)
+fit4 <- sdmTMB(present ~ forest + forest2 + water + buna_poor,
+               data = p_year_coord,
+               mesh = mesh,
+               family = binomial(link = "logit"),
+               spatial = "on",
+               time = "year",
+               time_varying = ~ 1,
+               time_varying_type = "ar1",
+               extra_time = 2025)
 
 # モデル1のあてはめ結果のチェック
 sanity(fit1)
@@ -232,10 +230,10 @@ sanity(fit2)
 # モデル3のあてはめ結果のチェック
 sanity(fit3)
 
-# いずれも問題は発見されませんでした。
+# モデル4のあてはめ結果のチェック
+sanity(fit4)
 
-# モデル0のあてはめ結果の要約
-summary(fit0)
+# いずれも問題は発見されませんでした。
 
 # モデル1のあてはめ結果の要約
 summary(fit1)
@@ -246,10 +244,14 @@ summary(fit2)
 # モデル3のあてはめ結果の要約
 summary(fit3)
 
-# AICの比較
-c(AIC(fit0), AIC(fit1), AIC(fit2), AIC(fit3))
+# モデル4のあてはめ結果の要約
+summary(fit4)
 
-# AICの値はモデル2の方が小さくので、
+
+# AICの比較
+c(AIC(fit1), AIC(fit2), AIC(fit3), AIC(fit4))
+
+# AICの値はモデル2の方がもっとも小さいので、
 # より予測能力が高いモデルとしてモデル2を採用します。
 
 # 2025年の出没確率の予測

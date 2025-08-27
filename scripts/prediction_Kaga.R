@@ -178,29 +178,39 @@ plot(mesh)
 
 # モデルの作成とあてはめ
 # モデル1: ブナの豊凶(B)を説明変数とするモデル
-# モデル2: 森林面積(F)とその2乗、ブナの豊凶を説明変数とするモデル
-# モデル3: 森林面積(F)とその2乗、河川・湖沼面積(W)、ブナの豊凶(B)を説明変数とするモデル
+# モデル2: 森林面積(F)とその2乗を説明変数とするモデル
+# モデル3: 森林面積(F)とその2乗、ブナの豊凶(B)を説明変数とするモデル
+# モデル4: 森林面積(F)とその2乗、河川・湖沼面積(W)、ブナの豊凶(B)を説明変数とするモデル
 # ともに、これら説明変数のほかに、空間の変量効果をモデルに組み込んでいます。
-# 時間の変量効果は、加えても係数が0と推定されましたので、抜いてあります。
+
 fit1 <- sdmTMB(present ~ buna_poor,
-              data = p_year_coord,
-              mesh = mesh,
-              family = binomial(link = "logit"),
-              spatial = "on",
-              time = "year",
-              time_varying = ~ 1,
-              time_varying_type = "ar1",
-              extra_time = 2025)
-fit2 <- sdmTMB(present ~ forest + forest2 + buna_poor,
-              data = p_year_coord,
-              mesh = mesh,
-              family = binomial(link = "logit"),
-              spatial = "on",
-              time = "year",
-              time_varying = ~ 1,
-              time_varying_type = "ar1",
-              extra_time = 2025)
-fit3 <- sdmTMB(present ~ forest + forest2 + water + buna_poor,
+               data = p_year_coord,
+               mesh = mesh,
+               family = binomial(link = "logit"),
+               spatial = "on",
+               time = "year",
+               time_varying = ~ 1,
+               time_varying_type = "ar1",
+               extra_time = 2025)
+fit2 <- sdmTMB(present ~ forest + forest2,
+               data = p_year_coord,
+               mesh = mesh,
+               family = binomial(link = "logit"),
+               spatial = "on",
+               time = "year",
+               time_varying = ~ 1,
+               time_varying_type = "ar1",
+               extra_time = 2025)
+fit3 <- sdmTMB(present ~ forest + forest2 + buna_poor,
+               data = p_year_coord,
+               mesh = mesh,
+               family = binomial(link = "logit"),
+               spatial = "on",
+               time = "year",
+               time_varying = ~ 1,
+               time_varying_type = "ar1",
+               extra_time = 2025)
+fit4 <- sdmTMB(present ~ forest + forest2 + water + buna_poor,
                data = p_year_coord,
                mesh = mesh,
                family = binomial(link = "logit"),
@@ -219,6 +229,9 @@ sanity(fit2)
 # モデル3のあてはめ結果のチェック
 sanity(fit3)
 
+# モデル4のあてはめ結果のチェック
+sanity(fit4)
+
 # いずれも問題は発見されませんでした。
 
 # モデル1のあてはめ結果の要約
@@ -227,13 +240,17 @@ summary(fit1)
 # モデル2のあてはめ結果の要約
 summary(fit2)
 
-# モデル2のあてはめ結果の要約
+# モデル3のあてはめ結果の要約
 summary(fit3)
 
-# AICの比較
-c(AIC(fit1), AIC(fit2), AIC(fit3))
+# モデル4のあてはめ結果の要約
+summary(fit4)
 
-# AICの値はモデル2の方が小さくので、
+
+# AICの比較
+c(AIC(fit1), AIC(fit2), AIC(fit3), AIC(fit4))
+
+# AICの値はモデル3がもっとも小さいので、
 # より予測能力が高いモデルとしてモデル2を採用します。
 
 # 2025年の出没確率の予測
@@ -244,11 +261,11 @@ newdata <- env |>
   dplyr::mutate(buna_poor = 1,
                 year = 2025)
 
-# モデル2を使用して2025年の出没確率を予測
-pred_buna_poor <- predict(fit2, newdata, type = "response")
+# モデル3を使用して2025年の出没確率を予測
+pred <- predict(fit3, newdata, type = "response")
 
 # 出没確率を地図化
-pred_buna_poor |>
+pred |>
   sf::st_as_sf() |>
   ggplot(aes(fill = est)) +
   geom_sf() +
@@ -260,7 +277,7 @@ pred_buna_poor |>
 # 2025年の出没予測確率と実際の出没データの比較
 
 # 2025年の出没状況
-pre_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
+occ_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
   readr::read_csv() |>
   dplyr::mutate(mesh_code = jpmesh::coords_to_mesh(`経度`, `緯度`, 1) |>
                   as.character()) |>
@@ -268,12 +285,12 @@ pre_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
   dplyr::summarise(n = n(), .groups = "drop")
 
 # 予測と実際の出没データを結合
-bind_2025 <- pred_buna_poor |>
-  dplyr::left_join(pre_2025, by = "mesh_code") |>
-  dplyr::mutate(pre_2025 = if_else(is.na(n), 0, 1))
+bind_2025 <- pred |>
+  dplyr::left_join(occ_2025, by = "mesh_code") |>
+  dplyr::mutate(occ_2025 = if_else(is.na(n), 0, 1))
 
 # 横軸を出没確率、縦軸を出没の有無としてプロット
-ggplot(bind_2025, aes(x = est, y = pre_2025)) +
+ggplot(bind_2025, aes(x = est, y = occ_2025)) +
   geom_jitter(color = "red", size = 3, alpha = 0.3,
               width = 0, height = 0.02) +
   scale_x_continuous(breaks = seq(0, 1, 0.2)) +
