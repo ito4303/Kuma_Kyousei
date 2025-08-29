@@ -278,7 +278,7 @@ pred_buna_poor |>
 # 2025年の出没予測確率と実際の出没データの比較
 
 # 2025年の出没状況
-pre_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
+occ_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
   readr::read_csv() |>
   dplyr::mutate(mesh_code = jpmesh::coords_to_mesh(`経度`, `緯度`, 1) |>
                   as.character()) |>
@@ -287,11 +287,11 @@ pre_2025 <- file.path(data_dir, "original", "bear_sightings_r7.csv") |>
 
 # 予測と実際の出没データを結合
 bind_2025 <- pred_buna_poor |>
-  dplyr::left_join(pre_2025, by = "mesh_code") |>
-  dplyr::mutate(pre_2025 = if_else(is.na(n), 0, 1))
+  dplyr::left_join(occ_2025, by = "mesh_code") |>
+  dplyr::mutate(occ_2025 = if_else(is.na(n), 0, 1))
 
 # 横軸を出没確率、縦軸を出没の有無としてプロット
-ggplot(bind_2025, aes(x = est, y = pre_2025)) +
+ggplot(bind_2025, aes(x = est, y = occ_2025)) +
   geom_jitter(color = "red", size = 3, alpha = 0.3,
               width = 0, height = 0.02) +
   scale_x_continuous(breaks = seq(0, 1, 0.2)) +
@@ -300,3 +300,30 @@ ggplot(bind_2025, aes(x = est, y = pre_2025)) +
        x = "2025年の出没予測確率", y = "実際の出没のあり(1)なし(0)") +
   theme_bw(base_family = "Noto Sans JP")
 
+# 予測確率を分けて、各区分ごとの出没ありの割合を計算
+
+breaks = c(0, 0.1, 0.2, 0.5)
+
+prop_2025 <- bind_2025 |>
+  dplyr::mutate(est_cat = cut(est, breaks,
+                             include.lowest = TRUE)) |>
+  dplyr::group_by(est_cat) |>
+  dplyr::summarise(n = n(),
+                   n_present = sum(occ_2025),
+                   prop_present = n_present / n,
+                   .groups = "drop") |>
+  dplyr::mutate(mid = (breaks[2:4] + breaks[1:3]) / 2)
+
+ggplot(prop_2025, aes(x = mid, y = prop_present)) +
+  geom_col(fill = "red", alpha = 0.7,
+           width = (breaks[2:4] - breaks[1:3]) - 0.01) +
+  scale_x_continuous(limits = c(min(breaks), max(breaks)),
+                     breaks = breaks, minor_breaks = NULL,
+                     labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(limits = c(0, 1),
+                     breaks = c(0, 0.1, 0.2, 0.5, 1),
+                     labels = scales::percent_format(accuracy = 1)) +
+  labs(title = "2025年の出没予測確率区分ごとの出没ありの割合",
+       x = "2025年の出没予測確率区分",
+       y = "出没ありの割合") +
+  theme_bw(base_family = "Noto Sans JP")

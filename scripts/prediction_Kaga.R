@@ -33,7 +33,7 @@ ishikawa_pref_file <- file.path(data_dir, "original",
 # クマ出没データの読み込み
 kuma_data <- read_parquet(data_file) |>
   # 500mメッシュコードを3次(1km)メッシュコードに変換
-  dplyr::mutate(mesh_code = str_sub(`500mメッシュコード`,1, 8))
+  dplyr::mutate(mesh_code = str_sub(`500mメッシュコード`, 1, 8))
 
 # 土地利用データの読み込み
 landuse <- landuse_files %>%
@@ -299,3 +299,29 @@ ggplot(bind_2025, aes(x = est, y = occ_2025)) +
        x = "2025年の出没予測確率", y = "実際の出没のあり(1)なし(0)") +
   theme_bw(base_family = "Noto Sans JP")
 
+# 予測確率を分けて、各区分ごとの出没ありの割合を計算
+
+breaks = seq(0, 1, 0.1)
+
+prop_2025 <- bind_2025 |>
+  dplyr::mutate(est_cat = cut(est, breaks,
+                              include.lowest = TRUE)) |>
+  dplyr::group_by(est_cat) |>
+  dplyr::summarise(n = n(),
+                   n_present = sum(occ_2025),
+                   prop_present = n_present / n,
+                   .groups = "drop") |>
+  dplyr::mutate(mid = (breaks[2:11] + breaks[1:10]) / 2)
+
+ggplot(prop_2025, aes(x = mid, y = prop_present)) +
+  geom_col(fill = "red", alpha = 0.7) +
+  scale_x_continuous(limits = c(min(breaks), max(breaks)),
+                     breaks = breaks, minor_breaks = NULL,
+                     labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(limits = c(0, 1),
+                     breaks = seq(0, 1, 0.2),
+                     labels = scales::percent_format(accuracy = 1)) +
+  labs(title = "2025年の出没予測確率区分ごとの出没ありの割合",
+       x = "2025年の出没予測確率区分",
+       y = "出没ありの割合") +
+  theme_bw(base_family = "Noto Sans JP")
