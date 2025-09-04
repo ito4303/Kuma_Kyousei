@@ -12,27 +12,38 @@ library(leaflet)
 
 function(input, output, session) {
   output$map <- renderLeaflet({
-    kuma_data |>
     leaflet() |>
       addTiles() |>
       setView(136.6, 36.8, zoom = 9) |>
-    addLegend(
-      position = "bottomright",
-      colors = pal_colors[c(6, 7, 1)],
-      labels = c("目撃", "痕跡", "人身被害・その他"))
+      addLegend(
+        position = "bottomright",
+        colors = pal_colors[c(6, 7, 1)],
+        labels = c("目撃", "痕跡", "人身被害・その他"),
+        data = kuma_data
+      ) |>
+      addLegend(
+        position = "topright",
+        pal = colorNumeric("YlOrRd", domain = c(0, 100)),
+        values = c(0, 100),
+        title = "確率(%)",
+        opacity = 1,
+        data = prob_data
+      )
   })
-  
+
   # checkboxGroupInput is used to filter the data
   # and update the map based on selected years
-  observeEvent(input$checkbox_group, {
+  observeEvent(input$checkbox_year, {
     leafletProxy(
       mapId = "map",
       data = kuma_data |>
-        dplyr::filter(as.character(year) %in% input$checkbox_group)
+        dplyr::filter(as.character(year) %in% input$checkbox_year)
     ) |>
       clearMarkerClusters() |>
       clearMarkers() |>
       addCircleMarkers(
+        lng = ~longitude,
+        lat = ~latitude,
         color = ~case_when(
           type == "目撃" ~ pal_colors[6],
           type == "痕跡" ~ pal_colors[7],
@@ -40,7 +51,25 @@ function(input, output, session) {
         opacity = 0.7,
         popup = ~comment,
         clusterOptions = TRUE
-      )
-  },
+      )},
   ignoreNULL = FALSE)
+  
+  # checkboxInput is used to toggle the prediction layer
+  observeEvent(input$checkbox_prediction, {
+    proxy <- leafletProxy(mapId = "map",
+                          data = prob_data)
+
+    if (input$checkbox_prediction) {
+      proxy |>
+        addPolygons(
+          fillColor = colorNumeric("YlOrRd", domain = c(0, 100))(prob_data$prob),
+          fillOpacity = 0.6,
+          stroke = FALSE,
+          popup = sprintf("%2.1f%%", prob_data$prob)
+        )
+    } else {
+      proxy |>
+        clearShapes()
+    }
+  })
 }

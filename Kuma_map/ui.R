@@ -19,10 +19,16 @@ fillPage(
     sidebarPanel(
       # checkbox group for filtering by year
       checkboxGroupInput(
-        inputId = "checkbox_group", 
+        inputId = "checkbox_year", 
         label = "出没年", 
         choices = as.character(2019:2024),
         selected = as.character(2019:2024),
+        width = "95%"
+      ),
+      checkboxInput(
+        inputId = "checkbox_prediction",
+        label = "出没予測確率の表示",
+        value = TRUE,
         width = "95%"
       ),
       width = 2
