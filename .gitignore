@@ -52,4 +52,5 @@ rsconnect/
 *.geojson
 
 # output files
+outputs/
 data/kuma_data.*

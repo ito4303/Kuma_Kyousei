@@ -11,6 +11,9 @@ library(sdmTMB)
 # データ配置ディレクトリ
 data_dir <- "data"
 
+# 出力ファイルのディレクトリ
+output_dir <- "outputs"
+
 # クマ出没データのパス
 data_file <- file.path(data_dir, "kuma_data.parquet")
 
@@ -272,24 +275,50 @@ formula[[4]] <- as.formula(paste("present ~ forest + forest2 +",
 formula[[5]] <- as.formula(paste("present ~ forest + forest2 +",
                                  "water + water2 + buna_poor"))
 
-# あてはめた結果を格納するリストを作成
-fit <- vector("list", 2)
-names(fit) <- region
+# 保存したあてはめ結果があれば読み込む
+fit_file <- file.path(output_dir, "kuma_sdmTMB_fit.rds")
+if (file.exists(fit_file)) {
+  fit <- readRDS(fit_file)
+} else {
+  # ファイルがなければ、あてはめ実行
 
-# 加賀地方についてあてはめ実行
-fit[["Kaga"]] <- purrr::map(
-  1:5, \(i) {
-    sdmTMB(formula[[i]],
-           data = kuma_env_coord[["Kaga"]],
-           mesh = mesh[["Kaga"]],
-           family = binomial(link = "logit"),
-           spatial = "on",
-           time = "year",
-           time_varying = ~ 1,
-           time_varying_type = "ar1",
-           extra_time = 2025)
-  })
+  # あてはめた結果を格納するリストを作成
+  fit <- vector("list", 2)
+  names(fit) <- region
 
+  # 加賀地方についてあてはめ実行
+  fit[["Kaga"]] <- purrr::map(
+    1:5, \(i) {
+      sdmTMB(formula[[i]],
+             data = kuma_env_coord[["Kaga"]],
+             mesh = mesh[["Kaga"]],
+             family = binomial(link = "logit"),
+             spatial = "on",
+             time = "year",
+             time_varying = ~ 1,
+             time_varying_type = "ar1",
+             extra_time = 2025)
+    })
+ 
+  # 能登地方についてあてはめ実行
+  fit[["Noto"]] <- purrr::map(
+    1:5, \(i) {
+      sdmTMB(formula[[i]],
+             data = kuma_env_coord[["Noto"]],
+             mesh = mesh[["Noto"]],
+             family = binomial(link = "logit"),
+             spatial = "on",
+             time = "year",
+             time_varying = ~ 1,
+             time_varying_type = "ar1",
+             extra_time = 2025)
+    })
+  
+  # あてはめ結果を保存
+  saveRDS(fit, fit_file)
+}
+
+# 加賀地方のあてはめ結果を確認
 # 結果の診断
 purrr::walk(1:5, \(i) {
   cat(paste("model:", i, "\n"))
@@ -304,20 +333,7 @@ purrr::walk(1:5, \(i) {
 # もっともAICがちいさかったモデル5の結果の要約を表示
 summary(fit[["Kaga"]][[5]])
 
-# 能登地方についてあてはめ実行
-fit[["Noto"]] <- purrr::map(
-  1:5, \(i) {
-    sdmTMB(formula[[i]],
-           data = kuma_env_coord[["Noto"]],
-           mesh = mesh[["Noto"]],
-           family = binomial(link = "logit"),
-           spatial = "on",
-           time = "year",
-           time_varying = ~ 1,
-           time_varying_type = "ar1",
-           extra_time = 2025)
-  })
-
+# 能登地方のあてはめ結果を確認
 # 結果の診断
 purrr::walk(1:5, \(i) {
   cat(paste("model:", i, "\n"))
@@ -339,14 +355,19 @@ summary(fit[["Noto"]][[2]])
 pred <- vector("list", 2)
 names(pred) <- region
 
+# 予測用のデータフレームを作成
+newdata <- vector("list", 2)
+names(newdata) <- region
+
 # 加賀地方の予測
-newdata <- env_data[["Kaga"]] |>
+newdata[["Kaga"]] <- env_data[["Kaga"]] |>
   dplyr::left_join(coord2[["Kaga"]], by = "mesh_code") |>
   dplyr::mutate(buna_poor = 1,
                 year = 2025)
 
 # モデル5を使用してpredictで予測実行
-pred[["Kaga"]] <- predict(fit[["Kaga"]][[5]], newdata, type = "response")
+pred[["Kaga"]] <- predict(fit[["Kaga"]][[5]], newdata[["Kaga"]],
+                          type = "response")
 
 
 # 2025年の加賀地方のクマ出没確率の予測マップ
@@ -358,13 +379,14 @@ pred[["Kaga"]] |>
   theme_minimal(base_family = "Noto Sans JP")
 
 # 能登地方の予測
-newdata <- env_data[["Noto"]] |>
+newdata[["Noto"]] <- env_data[["Noto"]] |>
   dplyr::left_join(coord2[["Noto"]], by = "mesh_code") |>
   dplyr::mutate(buna_poor = 1,
                 year = 2025)
 
 # モデル2を使用してpredictで予測実行
-pred[["Noto"]] <- predict(fit[["Noto"]][[2]], newdata, type = "response")
+pred[["Noto"]] <- predict(fit[["Noto"]][[2]], newdata[["Noto"]],
+                          type = "response")
 
 # 2025年の能登地方のクマ出没確率の予測マップ
 pred[["Noto"]] |>
