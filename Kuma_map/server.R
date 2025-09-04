@@ -34,11 +34,12 @@ function(input, output, session) {
   # checkboxGroupInput is used to filter the data
   # and update the map based on selected years
   observeEvent(input$checkbox_year, {
-    leafletProxy(
+    proxy <- leafletProxy(
       mapId = "map",
       data = kuma_data |>
         dplyr::filter(as.character(year) %in% input$checkbox_year)
-    ) |>
+    )
+    proxy |>
       clearMarkerClusters() |>
       clearMarkers() |>
       addCircleMarkers(
@@ -56,9 +57,10 @@ function(input, output, session) {
   
   # checkboxInput is used to toggle the prediction layer
   observeEvent(input$checkbox_prediction, {
-    proxy <- leafletProxy(mapId = "map",
-                          data = prob_data)
-
+    proxy <- leafletProxy(
+      mapId = "map",
+      data = prob_data
+    )
     if (input$checkbox_prediction) {
       proxy |>
         addPolygons(
