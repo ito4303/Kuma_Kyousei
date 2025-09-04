@@ -1,10 +1,12 @@
 #
-# This is the global settings of a Shiny web application.
+# map viewing predicted probability of bear insident occurrence
 #
 
 library(tidyverse)
+library(sf)
+library(leaflet)
 
-# Load the bear data from a parquet file
+# load data
 kuma_data <- file.path("data", "kuma_data.parquet") |>
   nanoparquet::read_parquet() |>
   # Select relevant columns and rename them for clarity
@@ -32,11 +34,36 @@ kuma_data <- file.path("data", "kuma_data.parquet") |>
     .keep = "none"
   )
 
-# Load the prediction data
 prob_data <- file.path("data", "kuma_prediction.geojson") |>
   sf::st_read() |>
   dplyr::mutate(prob = est * 100) |>   # percent
   sf::st_transform(crs = "WGS84")
 
-# palette colors
-pal_colors <- palette.colors(n = 8, palette = "Okabe-Ito")
+# map
+leaflet() |>
+  addTiles() |>
+  setView(136.6, 36.8, zoom = 9) |>
+  addPolygons(data = prob_data,
+              fillColor = colorNumeric("YlOrRd", domain = c(0, 100))(prob_data$prob),
+              fillOpacity = 0.6,
+              stroke = FALSE,
+              popup = sprintf("%2.1f%%", prob_data$prob)) |>
+  addLegend(position = "topright",
+            pal = colorNumeric("YlOrRd", domain = c(0, 100)),
+            values = c(0, 100),
+            title = "確率(%)",
+            opacity = 1) |>
+  addCircleMarkers(data = kuma_data,
+                   color = ~case_when(
+                     type == "目撃" ~ pal_colors[6],
+                     type == "痕跡" ~ pal_colors[7],
+                     .default = pal_colors[1]),
+                   opacity = 0.7,
+                   popup = ~comment,
+                   clusterOptions = TRUE) |>
+  addLegend(data = kuma_data,
+            position = "bottomright",
+            colors = pal_colors[c(6, 7, 1)],
+            title = "出没タイプ",
+            labels = c("目撃", "痕跡", "人身被害・その他"))
+
