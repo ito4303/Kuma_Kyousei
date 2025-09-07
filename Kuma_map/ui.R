@@ -28,19 +28,22 @@ fillPage(
         selected = as.character(2019:2024),
         width = "95%"
       ),
+
       # label for prediction
       h3("2025年の出没予測確率"),
-      p("タイルで表示しています"),
-      # checkbox for showing/hiding prediction
-      checkboxInput(
-        inputId = "checkbox_prediction",
-        label = "出没予測確率の表示",
-        value = TRUE,
+      #p("タイルで表示しています"),
+      # slider for opacity of prediction
+      sliderInput(
+        inputId = "slider_opacity",
+        label = "予測確率タイルの不透明度",
+        min = 0,
+        max = 1,
+        value = 0.7,
+        step = 0.1,
         width = "95%"
-      ),
-      width = 3
+      )
     ),
-    
+   
     # Show the map
     mainPanel(
       # c.f. https://blog.atusy.net/2019/08/01/shiny-plot-height/
@@ -52,7 +55,7 @@ fillPage(
         ),
         style = "height: calc(100vh  - 100px)"
       ),
-      width = 9
+      width = 8
     )
   ),
   padding = 10

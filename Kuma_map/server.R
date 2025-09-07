@@ -18,7 +18,7 @@ function(input, output, session) {
       addLegend(
         position = "topright",
         colors = pal_colors[c(6, 7, 1)],
-        title = "出没タイプ",
+        title = "過去の出没タイプ",
         labels = c("目撃", "痕跡", "人身被害・その他"),
         data = kuma_data
       ) |>
@@ -26,7 +26,7 @@ function(input, output, session) {
         position = "bottomright",
         pal = colorNumeric("YlOrRd", domain = c(0, 100)),
         values = c(0, 100),
-        title = "出没確率(%)",
+        title = "2025年出没確率(%)",
         opacity = 1,
         data = prob_data
       )
@@ -56,23 +56,20 @@ function(input, output, session) {
       )},
   ignoreNULL = FALSE)
   
-  # checkboxInput is used to toggle the prediction layer
-  observeEvent(input$checkbox_prediction, {
+  # sliderInput is used to set opacity of the prediction layer
+  observeEvent(input$slider_opacity, {
     proxy <- leafletProxy(
       mapId = "map",
       data = prob_data
     )
-    if (input$checkbox_prediction) {
-      proxy |>
-        addPolygons(
-          fillColor = colorNumeric("YlOrRd", domain = c(0, 100))(prob_data$prob),
-          fillOpacity = 0.6,
-          stroke = FALSE,
-          popup = sprintf("%2.1f%%", prob_data$prob)
-        )
-    } else {
-      proxy |>
-        clearShapes()
-    }
+    proxy |>
+      clearShapes() |>
+      addPolygons(
+        fillColor = colorNumeric("YlOrRd",
+                                 domain = c(0, 100))(prob_data$prob),
+        fillOpacity = input$slider_opacity,
+        stroke = FALSE,
+        popup = sprintf("%2.1f%%", prob_data$prob)
+      )
   })
 }
