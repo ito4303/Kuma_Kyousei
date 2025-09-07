@@ -345,8 +345,10 @@ purrr::walk(1:5, \(i) {
   print(paste0("モデル", i, "のAIC: ", AIC(fit[["Noto"]][[i]])))
 })
 
-# もっともAICがちいさかったモデル2の結果の要約を表示
+# もっともAICが小さかったモデル2と次に小さかったモデル3の
+# 結果の要約を表示
 summary(fit[["Noto"]][[2]])
+summary(fit[["Noto"]][[3]])
 
 
 # 2025年のクマ出没確率を予測
@@ -360,6 +362,7 @@ newdata <- vector("list", 2)
 names(newdata) <- region
 
 # 加賀地方の予測
+# 2025年のデータを作成
 newdata[["Kaga"]] <- env_data[["Kaga"]] |>
   dplyr::left_join(coord2[["Kaga"]], by = "mesh_code") |>
   dplyr::mutate(buna_poor = 1,
@@ -379,13 +382,15 @@ pred[["Kaga"]] |>
   theme_minimal(base_family = "Noto Sans JP")
 
 # 能登地方の予測
+# 2025年のデータを作成
 newdata[["Noto"]] <- env_data[["Noto"]] |>
   dplyr::left_join(coord2[["Noto"]], by = "mesh_code") |>
   dplyr::mutate(buna_poor = 1,
                 year = 2025)
 
-# モデル2を使用してpredictで予測実行
-pred[["Noto"]] <- predict(fit[["Noto"]][[2]], newdata[["Noto"]],
+# AICはモデル2の方が小さかったのですが、ブナ大凶作の影響も含めた
+# モデル3を使用してpredictで予測実行
+pred[["Noto"]] <- predict(fit[["Noto"]][[3]], newdata[["Noto"]],
                           type = "response")
 
 # 2025年の能登地方のクマ出没確率の予測マップ
