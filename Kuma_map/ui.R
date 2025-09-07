@@ -17,6 +17,9 @@ fillPage(
   
   sidebarLayout(
     sidebarPanel(
+      # label for past incidents
+      h3("過去の出没情報"),
+      p("◎で表示しています"),
       # checkbox group for filtering by year
       checkboxGroupInput(
         inputId = "checkbox_year", 
@@ -25,13 +28,17 @@ fillPage(
         selected = as.character(2019:2024),
         width = "95%"
       ),
+      # label for prediction
+      h3("2025年の出没予測確率"),
+      p("タイルで表示しています"),
+      # checkbox for showing/hiding prediction
       checkboxInput(
         inputId = "checkbox_prediction",
         label = "出没予測確率の表示",
         value = TRUE,
         width = "95%"
       ),
-      width = 2
+      width = 3
     ),
     
     # Show the map
@@ -45,7 +52,7 @@ fillPage(
         ),
         style = "height: calc(100vh  - 100px)"
       ),
-      width = 10
+      width = 9
     )
   ),
   padding = 10

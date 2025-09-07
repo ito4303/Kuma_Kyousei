@@ -16,16 +16,17 @@ function(input, output, session) {
       addTiles() |>
       setView(136.6, 36.8, zoom = 9) |>
       addLegend(
-        position = "bottomright",
+        position = "topright",
         colors = pal_colors[c(6, 7, 1)],
+        title = "出没タイプ",
         labels = c("目撃", "痕跡", "人身被害・その他"),
         data = kuma_data
       ) |>
       addLegend(
-        position = "topright",
+        position = "bottomright",
         pal = colorNumeric("YlOrRd", domain = c(0, 100)),
         values = c(0, 100),
-        title = "確率(%)",
+        title = "出没確率(%)",
         opacity = 1,
         data = prob_data
       )
