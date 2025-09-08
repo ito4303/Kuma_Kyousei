@@ -23,7 +23,7 @@ fillPage(
       # checkbox group for filtering by year
       checkboxGroupInput(
         inputId = "checkbox_year", 
-        label = "出没年", 
+        label = "年", 
         choices = as.character(2019:2024),
         selected = as.character(2019:2024),
         width = "95%"
@@ -41,7 +41,8 @@ fillPage(
         value = 0.7,
         step = 0.1,
         width = "95%"
-      )
+      ),
+      width = 3
     ),
    
     # Show the map
@@ -55,7 +56,7 @@ fillPage(
         ),
         style = "height: calc(100vh  - 100px)"
       ),
-      width = 8
+      width = 9
     )
   ),
   padding = 10

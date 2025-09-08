@@ -17,16 +17,16 @@ function(input, output, session) {
       setView(136.6, 36.8, zoom = 9) |>
       addLegend(
         position = "topright",
-        colors = pal_colors[c(6, 7, 1)],
         title = "過去の出没タイプ",
+        colors = pal_colors[c(6, 7, 1)],
         labels = c("目撃", "痕跡", "人身被害・その他"),
         data = kuma_data
       ) |>
       addLegend(
         position = "bottomright",
+        title = "2025年出没確率(%)",
         pal = colorNumeric("YlOrRd", domain = c(0, 100)),
         values = c(0, 100),
-        title = "2025年出没確率(%)",
         opacity = 1,
         data = prob_data
       )
