@@ -6,6 +6,9 @@ library(tidyverse)
 library(sf)
 library(leaflet)
 
+# palette colors
+pal_colors <- palette.colors(n = 8, palette = "Okabe-Ito")
+
 # load data
 kuma_data <- file.path("data", "kuma_data.parquet") |>
   nanoparquet::read_parquet() |>
