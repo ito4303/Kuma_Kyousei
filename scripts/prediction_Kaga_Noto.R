@@ -357,9 +357,11 @@ summary(fit[["Noto"]][[3]])
 pred <- vector("list", 2)
 names(pred) <- region
 
-# 予測用のデータフレームを作成
+# 予測データと予測値のリストを作成
 newdata <- vector("list", 2)
 names(newdata) <- region
+pred <- vector("list", 2)
+names(pred) <- region
 
 # 加賀地方の予測
 # 2025年のデータを作成
@@ -369,19 +371,19 @@ newdata[["Kaga"]] <- env_data[["Kaga"]] |>
                 year = 2025)
 
 # モデル5を使用してpredictで予測実行
-pred[["Kaga"]] <- predict(fit[["Kaga"]][[5]], newdata[["Kaga"]],
-                          type = "response", nsim = 2000)
-Kaga_median <- apply(pred[["Kaga"]], 1, median)
-Kaga_upper <- apply(pred[["Kaga"]], 1, quantile, 0.8) # 上側80%点
+est <- predict(fit[["Kaga"]][[5]], newdata[["Kaga"]],
+               type = "response", nsim = 2000)
+
+# 予測値として上側80%点を使用
+upper <- apply(est, 1, quantile, 0.8) # 上側80%点
+pred[["Kaga"]] <- newdata[["Kaga"]] |>
+  dplyr::mutate(pred = upper) |>
+  dplyr::select(mesh_code, pred, geometry)
 
 # 2025年の加賀地方のクマ出没確率の予測マップ
-# 上側80%点を使用
-est_Kaga <- newdata[["Kaga"]] |>
-  dplyr::mutate(est = Kaga_upper) |>
-  dplyr::select(mesh_code, est, geometry)
-est_Kaga |>
+pred[["Kaga"]] |>
   sf::st_as_sf() |>
-  ggplot(aes(fill = Kaga_upper)) +
+  ggplot(aes(fill = pred)) +
   geom_sf() +
   scale_fill_viridis_c(name = "出没確率", limits = c(0, 1)) +
   theme_minimal(base_family = "Noto Sans JP")
@@ -395,52 +397,45 @@ newdata[["Noto"]] <- env_data[["Noto"]] |>
 
 # AICはモデル2の方が小さかったのですが、ブナ大凶作の影響も含めた
 # モデル3を使用してpredictで予測実行
-pred[["Noto"]] <- predict(fit[["Noto"]][[3]], newdata[["Noto"]],
-                          type = "response", nsim = 2000)
-Noto_median <- apply(pred[["Noto"]], 1, median)
-Noto_upper <- apply(pred[["Noto"]], 1, quantile, 0.8) # 上側80%点
+est <- predict(fit[["Noto"]][[3]], newdata[["Noto"]],
+               type = "response", nsim = 2000)
+
+# 予測値として上側80%点を使用
+upper <- apply(est, 1, quantile, 0.8) # 上側80%点
+pred[["Noto"]] <- newdata[["Noto"]] |>
+  dplyr::mutate(pred = upper) |>
+  dplyr::select(mesh_code, pred, geometry)
 
 # 2025年の能登地方のクマ出没確率の予測マップ
-est_Noto <- env_data[["Noto"]] |>
-  dplyr::left_join(coord2[["Noto"]], by = "mesh_code") |>
-  dplyr::mutate(buna_poor = 1,
-                year = 2025)
-est_Noto |>
+pred[["Noto"]] |>
   sf::st_as_sf() |>
-  ggplot(aes(fill = Noto_upper)) +
+  ggplot(aes(fill = pred)) +
   geom_sf() +
   scale_fill_viridis_c(name = "出没確率", limits = c(0, 1)) +
   theme_minimal(base_family = "Noto Sans JP")
 
 # 加賀地方と能登地方の予測結果を結合し、重複する3次メッシュコードについては
 # 出没確率の平均をとる
-pred_all <- bind_rows(
-  newdata[["Kaga"]] |>
-    dplyr::mutate(est = Kaga_upper) |>
-    dplyr::select(mesh_code, est, geometry),
-  newdata[["Noto"]] |>
-    dplyr::mutate(est = Noto_upper) |>
-    dplyr::select(mesh_code, est, geometry)
-)
+pred_all <- bind_rows(pred)
 dup <- pred_all |>
   dplyr::count(mesh_code) |>
   dplyr::filter(n > 1)
-est_dup <- pred_all |>
+pred_dup <- pred_all |>
   dplyr::filter(mesh_code %in% dup$mesh_code) |>
   dplyr::group_by(mesh_code) |>
-  dplyr::summarise(est = mean(est), .groups = "drop")
+  dplyr::summarise(pred = mean(pred), .groups = "drop")
 
 # 重複を整理し、石川県全体の3次メッシュごとの
 # 2025年のクマ出没確率の予測データを作成
 combinded_pred <- pred_all |>
-  dplyr::left_join(est_dup, by = "mesh_code") |>
-  dplyr::mutate(est = if_else(is.na(est.y), est.x, est.y)) |>
+  dplyr::left_join(pred_dup, by = "mesh_code") |>
+  dplyr::mutate(pred = if_else(is.na(pred.y), pred.x, pred.y)) |>
   dplyr::distinct(mesh_code, .keep_all = TRUE) |>
-  dplyr::select(mesh_code, est, geometry) |>
+  dplyr::select(mesh_code, pred, geometry) |>
   sf::st_as_sf()
 
 # 統合した石川県全体のクマ出没予測確率のマップ
-ggplot(combinded_pred, aes(fill = est)) +
+ggplot(combinded_pred, aes(fill = pred)) +
   geom_sf() +
   scale_fill_viridis_c(name = "出没確率", limits = c(0, 1)) +
   theme_minimal(base_family = "Noto Sans JP")
@@ -469,9 +464,9 @@ breaks <- seq(0, 1, 0.2)
 n_breaks <- length(breaks)
 
 prop_2025 <- bind_2025 |>
-  dplyr::mutate(est_cat = cut(est, breaks,
+  dplyr::mutate(pred_cat = cut(pred, breaks,
                               include.lowest = TRUE)) |>
-  dplyr::group_by(est_cat) |>
+  dplyr::group_by(pred_cat) |>
   dplyr::summarise(n = n(),
                    n_present = sum(occ_2025),
                    prop_present = n_present / n,

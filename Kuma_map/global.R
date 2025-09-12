@@ -35,7 +35,7 @@ kuma_data <- file.path("data", "kuma_data.parquet") |>
 # Load the prediction data
 prob_data <- file.path("data", "kuma_prediction.geojson") |>
   sf::st_read() |>
-  dplyr::mutate(prob = est * 100) |>   # percent
+  dplyr::mutate(prob = pred * 100) |>   # percent
   sf::st_transform(crs = "WGS84")
 
 # palette colors
