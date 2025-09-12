@@ -374,8 +374,8 @@ newdata[["Kaga"]] <- env_data[["Kaga"]] |>
 est <- predict(fit[["Kaga"]][[5]], newdata[["Kaga"]],
                type = "response", nsim = 2000)
 
-# 予測値として上側80%点を使用
-upper <- apply(est, 1, quantile, 0.8) # 上側80%点
+# 予測値として上側20%点を使用
+upper <- apply(est, 1, quantile, 0.8) # 上側20%点
 pred[["Kaga"]] <- newdata[["Kaga"]] |>
   dplyr::mutate(pred = upper) |>
   dplyr::select(mesh_code, pred, geometry)
@@ -400,8 +400,8 @@ newdata[["Noto"]] <- env_data[["Noto"]] |>
 est <- predict(fit[["Noto"]][[3]], newdata[["Noto"]],
                type = "response", nsim = 2000)
 
-# 予測値として上側80%点を使用
-upper <- apply(est, 1, quantile, 0.8) # 上側80%点
+# 予測値として上側20%点を使用
+upper <- apply(est, 1, quantile, 0.8) # 上側20%点
 pred[["Noto"]] <- newdata[["Noto"]] |>
   dplyr::mutate(pred = upper) |>
   dplyr::select(mesh_code, pred, geometry)
