@@ -1,25 +1,77 @@
 ---
 title: "石川県クマ出没マップの作成"
 author: "伊東宏樹"
-format: revealjs
+date: 2025-09-27
+lang: ja
+format:
+  revealjs:
+    theme: night
+    footer: "クマ×共生ハッカソン Day 2"
 editor: visual
 ---
 
-## Quarto
+## 誰？
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+伊東宏樹
 
-## Bullets
+## 石川県クマ出没マップ
 
-When you click the **Render** button a document will be generated that includes:
+<https://ito4303.shinyapps.io/Isikawa_kuma_map/>
 
--   Content authored with markdown
--   Output from executable code
+![](figures/map.png)
 
-## Code
+## どうやってつくったか
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+-   R
 
-```{r}
-1 + 1
-```
+-   Leaflet
+
+-   Shiny
+
+## R
+
+[![](figures/R.png)](https://www.r-project.org/)
+
+統計計算とグラフィックの環境
+
+## Leaflet
+
+![](figures/Leaflet.png)
+
+Rのleafletパッケージから使用
+
+## Shiny
+
+![](figures/Shiny.png)
+
+R（またはPython）でウェブアプリを作成できる
+
+## データ処理
+
+tidyverseパッケージ
+
+## 予測モデル
+
+SDM (Species Distribution Model)
+
+sdmTMBパッケージ
+
+クマそのものではなく、クマの出没情報の分布予測
+
+## 加賀地方
+
+森林
+
+## 能登地方
+
+森林
+
+## 予測確率
+
+上側20％点
+
+## おわりに
+
+R勉強会 Kanazawa.R #4
+
+2025年11月15日
