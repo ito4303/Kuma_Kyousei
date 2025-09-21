@@ -1,77 +1,196 @@
 ---
 title: "石川県クマ出没マップの作成"
+subtitle: "クマ×共生ハッカソン Day 2"
 author: "伊東宏樹"
 date: 2025-09-27
 lang: ja
 format:
   revealjs:
     theme: night
-    footer: "クマ×共生ハッカソン Day 2"
+    slide-number: true
+embed-resources: true
 editor: visual
 ---
 
 ## 誰？
 
-伊東宏樹
+-   伊東宏樹（1967年小松市生まれ）
+
+-   個人事業主（データ解析や統計研修講師などお引き受けします）
+
+-   前職: 森林総合研究所（里山管理や、シカによる森林への影響など）
+
+-   出版物: 『[生態学のための階層モデリング](https://www.kyoritsu-pub.co.jp/book/b10003301.html)』（共訳）など
+
+-   最近: [iNaturalist](https://www.inaturalist.org/)に生物の観察情報を登録しています
 
 ## 石川県クマ出没マップ
 
 <https://ito4303.shinyapps.io/Isikawa_kuma_map/>
 
-![](figures/map.png)
+[![](figures/map.png){width="747"}](https://ito4303.shinyapps.io/Isikawa_kuma_map/)
 
-## どうやってつくったか
+## こうやってつくりました
 
--   R
+使ったもの
 
--   Leaflet
+-   R: データ整理、統計分析
 
--   Shiny
+-   Leaflet: 地図
+
+-   Shiny: ウェブアプリ
 
 ## R
 
-[![](figures/R.png)](https://www.r-project.org/)
+統計計算とグラフィックのための言語と環境
 
-統計計算とグラフィックの環境
+-   統計分析に非常に強い
+-   豊富なパッケージ群による機能拡張
+
+[![](figures/R.png){fig-align="center" width="498"}](https://www.r-project.org/)
 
 ## Leaflet
 
-![](figures/Leaflet.png)
+インタラクティブ地図を作成できるJavaScriptライブラリ
 
-Rのleafletパッケージから使用
+[![](figures/Leaflet.png){fig-align="center" width="498"}](https://leafletjs.com/)
+
+Rからは、leafletパッケージを使って利用できる
 
 ## Shiny
 
-![](figures/Shiny.png)
-
 R（またはPython）でウェブアプリを作成できる
+
+![](figures/Shiny.png){fig-align="center" width="498"}
+
+## データ
+
+-   [いしかわオープンデータカタログ](https://ishikawa-datapf.jp/odp/)から
+
+    -   [石川県クマ出没データ](https://ishikawa-datapf.jp/ckan/dataset/bear_incidents_data)
+
+-   [国土数値情報](https://nlftp.mlit.go.jp/ksj/)から
+
+    -   [行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_0.html)
+    -   [土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a.html)
 
 ## データ処理
 
-tidyverseパッケージ
+-   Rで前処理
+
+-   Parquet形式で出力
+
+-   具体的な内容 ☞ [石川県のクマ出没データをRで前処理](https://ito4303.sakura.ne.jp/posts/2025-07-16-kuma-preprocess/)
+
+## 過去の出没情報
+
+-   前処理したParquetファイルを読み込み
+
+-   Leafletで地図化
+
+-   具体的な内容 ☞ [石川県クマ出没マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-03-isikawa-kuma-map/)
 
 ## 予測モデル
 
-SDM (Species Distribution Model)
+-   生態学で使用される種分布モデル SDM (Species Distribution Model) を使用
 
-sdmTMBパッケージ
+-   クマそのものではなく、クマの出没情報の分布を予測
 
-クマそのものではなく、クマの出没情報の分布予測
+-   RのsdmTMBパッケージを使用
 
-## 加賀地方
+-   時空間自己相関をモデルにとりいれる
 
-森林
+-   3次メッシュの土地利用（森林、河川・湖沼）とブナの豊凶を説明変数に
 
-## 能登地方
-
-森林
+-   具体的な内容 ☞ [石川県のクマ出没予測マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-30-kaganoto-kuma-map/)
 
 ## 予測確率
 
-上側20％点
+最尤推定値にもとづく確率ではなく、上側20％点を予測値として採用
+
+```{r}
+#| label: prediction2
+#| fig-width: 5
+#| fig-height: 3
+#| cache: true
+
+library(ggplot2)
+set.seed(2)
+
+R <- 20000
+logit_p <- rnorm(R, -1, 0.5)
+p <- 1 / (1 + exp(-logit_p))
+
+# Median
+median_p <- median(p)
+
+# Mean
+mean_p <- mean(p)
+
+# Mode
+mode_p <- cut(p, breaks = seq(0, 1, 0.01)) |>
+  table() |>
+  sort() |>
+  tail(1) |>
+  c() |>
+  names() |>
+  stringr::str_extract_all("0\\.[0-9]*") |>
+  unlist() |>
+  as.numeric() |>
+  mean()
+upper_p <- quantile(p, probs = 0.8)
+
+# logit function
+logit <- function(x) {
+  log(x / (1 - x))
+}
+
+# logit-normal distribution
+func <- function(x, mu = 0, sigma = 1) {
+  1 / (x * (1 - x)) * dnorm(logit(x), mu, sigma)
+}
+
+e <- 1e-8
+ggplot(data.frame(x = c(e, 1 - e)), aes(x = x)) +
+  geom_function(fun = func, args = list(mu = -1, sigma = 0.5)) +
+  geom_vline(aes(xintercept = mode_p), color = "blue") +
+  stat_function(fun = func, args = list(mu = -1, sigma = 0.5),
+                geom = "area",
+                fill = "green", alpha = 0.5,
+                xlim = c(upper_p, 1-e)) +
+  labs(x = "確率", y = "密度") +
+  annotate("segment", x = mode_p, xend = mode_p, y = 0.5, yend = 0,
+           color = "red", linewidth = 1.5,
+           arrow = arrow(length = unit(2.5, "mm"))) +
+  annotate("segment", x = upper_p, xend = upper_p, y = 0.5, yend = 0,
+           color = "red", linewidth = 1.5,
+           arrow = arrow(length = unit(2.5, "mm"))) +
+  annotate("segment", x = 0.55, xend = upper_p + 0.02,
+                      y = 2, yend = 0.6,
+           color = "red", linewidth = 0.5) +
+  annotate("text", x = 0.56, y = 2.1, hjust = 0,
+           label = "こちらの値を採用", color = "red") +
+  annotate("text", x = 0.42, y = 0.25, hjust = 0,
+           label = "20%", color = "darkgreen") +
+  theme_gray(base_family = "Noto Sans JP", base_size = 12)
+```
+
+出没確率を過小評価するほうが危険なので、あえてやや高めの予測値を採用
 
 ## おわりに
 
-R勉強会 Kanazawa.R #4
+-   予測確率の設定はこれでいいのか？
 
-2025年11月15日
+-   作成したコードはGitHubにて公開
+
+    -   <https://github.com/ito4303/Kuma_Kyousei/>
+
+## Kanazawa.R のご案内
+
+-   R勉強会 Kanazawa.R #4
+
+-   日時: 2025年11月15日（土）
+
+-   会場: 金沢市内
+
+-   参加ご希望の方は、connpassのKanazawa.R グループ <https://kanazawar.connpass.com>に参加、または伊東までお知らせください。
