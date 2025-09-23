@@ -54,3 +54,6 @@ rsconnect/
 # output files
 outputs/
 data/kuma_data.*
+*_files/
+*.html
+
