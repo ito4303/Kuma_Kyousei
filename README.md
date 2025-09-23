@@ -2,8 +2,9 @@
 
 [「クマ×共生ハッカソン」](https://note.com/from_iudc_2025/n/nd902f23f331a)（IUDC、金沢シビックテック推進協議会共催）で作成したスクリプトです。
 
--   scripts/preprocess.R: 石川県クマ出没データの前処理
--   scripts/prediction_Kaga_Noto.R: 石川県のクマ出没確率予測マップ
--   scripts/prediction_Kanazawa.R: 金沢市のクマ出没確率予測マップ
--   scripts/prediction_Komatu.R: 小松市のクマ出没確率予測マップ
--   Kuma_map/: 石川県クマ出没データ/予測確率を地図で表示するウェブアプリ
+-   `scripts/preprocess.R:` 石川県クマ出没データの前処理
+-   `scripts/prediction_Kaga_Noto.R`: 石川県のクマ出没確率予測マップ
+-   `scripts/prediction_Kanazawa.R`: 金沢市のクマ出没確率予測マップ
+-   `scripts/prediction_Komatu.R`: 小松市のクマ出没確率予測マップ
+-   `Kuma_map/`: 石川県クマ出没データ/予測確率を地図で表示するウェブアプリ
+-   `presentation/2025-09-27-kuma-map.qmd`: Day 2 のプレゼンテーション資料

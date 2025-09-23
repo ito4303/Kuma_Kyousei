@@ -34,11 +34,11 @@ editor: visual
 
 使ったもの
 
--   R: データ整理、統計分析
+-   R: データ整理・整形、統計分析
 
--   Leaflet: 地図
+-   Leaflet: 地図化
 
--   Shiny: ウェブアプリ
+-   Shiny: ウェブアプリ化
 
 ## R
 
@@ -74,23 +74,33 @@ R（またはPython）でウェブアプリを作成できる
     -   [行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_0.html)
     -   [土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a.html)
 
-## データ処理
+## Rでデータの処理
 
--   Rで前処理
+-   データ読み込み
+
+-   整理
+
+    -   データ形式の統一（元号→西暦など）
+
+    -   異常値の修正
+
+    -   出没タイプ別のデータの統合
 
 -   Parquet形式で出力
 
--   具体的な内容 ☞ [石川県のクマ出没データをRで前処理](https://ito4303.sakura.ne.jp/posts/2025-07-16-kuma-preprocess/)
+具体的な内容 ☞ [石川県のクマ出没データをRで前処理](https://ito4303.sakura.ne.jp/posts/2025-07-16-kuma-preprocess/)
 
-## 過去の出没情報
+## 過去の出没情報の地図化
 
 -   前処理したParquetファイルを読み込み
 
+-   ポップアップテキストの作成
+
 -   Leafletで地図化
 
--   具体的な内容 ☞ [石川県クマ出没マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-03-isikawa-kuma-map/)
+具体的な内容 ☞ [石川県クマ出没マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-03-isikawa-kuma-map/)
 
-## 予測モデル
+## 予測モデルの作成
 
 -   生態学で使用される種分布モデル SDM (Species Distribution Model) を使用
 
@@ -102,7 +112,7 @@ R（またはPython）でウェブアプリを作成できる
 
 -   3次メッシュの土地利用（森林、河川・湖沼）とブナの豊凶を説明変数に
 
--   具体的な内容 ☞ [石川県のクマ出没予測マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-30-kaganoto-kuma-map/)
+具体的な内容 ☞ [石川県のクマ出没予測マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-30-kaganoto-kuma-map/)
 
 ## 予測確率
 
@@ -179,11 +189,18 @@ ggplot(data.frame(x = c(e, 1 - e)), aes(x = x)) +
 
 ## おわりに
 
--   予測確率の設定はこれでいいのか？
+-   **要検討事項**
 
--   作成したコードはGitHubにて公開
+    -   予測モデルの改善
+        -   予測確率の設定はこれでいいのか？
+        -   2025年の結果との照合
+    -   UIの改善
+
+-   ::: {style="margin-top: 2em;"}
+    作成したコードはGitHubにて公開
 
     -   <https://github.com/ito4303/Kuma_Kyousei/>
+    :::
 
 ## Kanazawa.R のご案内
 
@@ -191,6 +208,6 @@ ggplot(data.frame(x = c(e, 1 - e)), aes(x = x)) +
 
 -   日時: 2025年11月15日（土）
 
--   会場: 金沢市内
+-   会場: 金沢市内（+オンライン）
 
 -   参加ご希望の方は、connpassのKanazawa.R グループ <https://kanazawar.connpass.com>に参加、または伊東までお知らせください。
