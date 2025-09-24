@@ -30,69 +30,17 @@ editor: visual
 
 [![](figures/map.png){width="747"}](https://ito4303.shinyapps.io/Isikawa_kuma_map/)
 
-## こうやってつくりました
+## 使ったもの
 
-使ったもの
-
--   R: データ整理・整形、統計分析
-
--   Leaflet: 地図化
-
--   Shiny: ウェブアプリ化
-
-## R
-
-統計計算とグラフィックのための言語と環境
-
--   統計分析に非常に強い
--   豊富なパッケージ群による機能拡張
-
-[![](figures/R.png){fig-align="center" width="498"}](https://www.r-project.org/)
-
-## Leaflet
-
-インタラクティブ地図を作成できるJavaScriptライブラリ
-
-[![](figures/Leaflet.png){fig-align="center" width="498"}](https://leafletjs.com/)
-
-Rからは、leafletパッケージを使って利用できる
-
-## Shiny
-
-R（またはPython）でウェブアプリを作成できる
-
-![](figures/Shiny.png){fig-align="center" width="498"}
-
-## データ
-
--   [いしかわオープンデータカタログ](https://ishikawa-datapf.jp/odp/)から
-
+-   オープンデータ
     -   [石川県クマ出没データ](https://ishikawa-datapf.jp/ckan/dataset/bear_incidents_data)
-
--   [国土数値情報](https://nlftp.mlit.go.jp/ksj/)から
-
-    -   [行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_0.html)
-    -   [土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a.html)
-
-## Rでデータの処理
-
--   データ読み込み
-
--   整理
-
-    -   データ形式の統一（元号→西暦など）
-
-    -   異常値の修正
-
-    -   出没タイプ別のデータの統合
-
--   Parquet形式で出力
-
-具体的な内容 ☞ [石川県のクマ出没データをRで前処理](https://ito4303.sakura.ne.jp/posts/2025-07-16-kuma-preprocess/)
+    -   [国土数値情報](https://nlftp.mlit.go.jp/ksj/): [行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v3_0.html), [土地利用3次メッシュデータ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-a.html)
+-   [R](https://www.r-project.org/) — 統計計算とグラフィックのための言語と環境
+    -   データ整理・整形、統計分析
+-   [Leaflet](https://leafletjs.com/): インタラクティブ地図を作成できる
+-   [Shiny](https://shiny.posit.co/): R（またはPython）でウェブアプリを作成できる
 
 ## 過去の出没情報の地図化
-
--   前処理したParquetファイルを読み込み
 
 -   ポップアップテキストの作成
 
@@ -106,11 +54,7 @@ R（またはPython）でウェブアプリを作成できる
 
 -   クマそのものではなく、クマの出没情報の分布を予測
 
--   RのsdmTMBパッケージを使用
-
--   時空間自己相関をモデルにとりいれる
-
--   3次メッシュの土地利用（森林、河川・湖沼）とブナの豊凶を説明変数に
+-   RのsdmTMBパッケージを利用
 
 具体的な内容 ☞ [石川県のクマ出没予測マップの作成](https://ito4303.sakura.ne.jp/posts/2025-08-30-kaganoto-kuma-map/)
 
