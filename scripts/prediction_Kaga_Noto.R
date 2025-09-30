@@ -149,6 +149,13 @@ plot_landuse_prop("Kaga", "河川地及び湖沼",
                   title = paste0("加賀地方における、河川地及び湖沼面積と",
                                  "クマ出没のあった年の割合との関係"))
 
+# 加賀地方における、3次メッシュ中の道路面積と
+# クマ出没のあった年の割合との関係
+plot_landuse_prop("Kaga", "道路",
+                  x = expression(paste("道路面積(", km^2, ")")),
+                  title = paste0("加賀地方における、道路面積と",
+                                 "クマ出没のあった年の割合との関係"))
+
 
 # 能登地方における、3次メッシュ中の森林面積と
 # クマ出没のあった年の割合との関係
@@ -163,6 +170,13 @@ plot_landuse_prop("Noto", "森林",
 plot_landuse_prop("Noto", "河川地及び湖沼",
                   x = expression(paste("河川地及び湖沼面積(", km^2, ")")),
                   title = paste0("能登地方における、河川地及び湖沼面積と",
+                                 "クマ出没のあった年の割合との関係"))
+
+# 能登地方における、3次メッシュ中の道路面積と
+# クマ出没のあった年の割合との関係
+plot_landuse_prop("Noto", "道路",
+                  x = expression(paste("道路面積(", km^2, ")")),
+                  title = paste0("能登地方における、道路面積と",
                                  "クマ出没のあった年の割合との関係"))
 
 # ブナの豊凶も可視化しつつ、各年のクマ出没件数の関係をプロットする関数を定義
@@ -195,9 +209,12 @@ env_data <- purrr::map(
       dplyr::mutate(forest = `森林`,
                     forest2 = `森林`^2,
                     water = `河川地及び湖沼`,
-                    water2 = `河川地及び湖沼`^2) |>
+                    water2 = `河川地及び湖沼`^2,
+                    road = `道路`,
+                    road2 = `道路`^2) |>
       as.data.frame() |> # drop geometry
-      dplyr::select(mesh_code, forest, forest2, water, water2)
+      dplyr::select(mesh_code, forest, forest2, water, water2,
+                    road, road2)
   })
 names(env_data) <- region
 
@@ -265,8 +282,8 @@ plot(mesh[["Kaga"]])
 plot(mesh[["Noto"]])
 
 # sdmTMBのモデル式を定義
-# 5種類のモデル
-formula <- vector("list", 5)
+# 6種類のモデル
+formula <- vector("list", 6)
 formula[[1]] <- as.formula("present ~ buna_poor")
 formula[[2]] <- as.formula("present ~ forest + forest2")
 formula[[3]] <- as.formula("present ~ forest + forest2 + buna_poor")
@@ -274,6 +291,9 @@ formula[[4]] <- as.formula(paste("present ~ forest + forest2 +",
                                  "water + water2"))
 formula[[5]] <- as.formula(paste("present ~ forest + forest2 +",
                                  "water + water2 + buna_poor"))
+formula[[6]] <- as.formula(paste("present ~ forest + forest2 +",
+                                 "water + water2 + road + road2 +",
+                                 "buna_poor"))
 
 # 保存したあてはめ結果があれば読み込む
 fit_file <- file.path(output_dir, "kuma_sdmTMB_fit.rds")
@@ -288,7 +308,7 @@ if (file.exists(fit_file)) {
 
   # 加賀地方についてあてはめ実行
   fit[["Kaga"]] <- purrr::map(
-    1:5, \(i) {
+    1:6, \(i) {
       sdmTMB(formula[[i]],
              data = kuma_env_coord[["Kaga"]],
              mesh = mesh[["Kaga"]],
@@ -302,7 +322,7 @@ if (file.exists(fit_file)) {
  
   # 能登地方についてあてはめ実行
   fit[["Noto"]] <- purrr::map(
-    1:5, \(i) {
+    1:6, \(i) {
       sdmTMB(formula[[i]],
              data = kuma_env_coord[["Noto"]],
              mesh = mesh[["Noto"]],
@@ -320,13 +340,13 @@ if (file.exists(fit_file)) {
 
 # 加賀地方のあてはめ結果を確認
 # 結果の診断
-purrr::walk(1:5, \(i) {
+purrr::walk(1:6, \(i) {
   cat(paste("model:", i, "\n"))
   sdmTMB::sanity(fit[["Kaga"]][[i]])
 })
 
 # 各モデルのAICを表示
-purrr::walk(1:5, \(i) {
+purrr::walk(1:6, \(i) {
   print(paste0("モデル", i, "のAIC: ", AIC(fit[["Kaga"]][[i]])))
 })
 
@@ -335,13 +355,13 @@ summary(fit[["Kaga"]][[5]])
 
 # 能登地方のあてはめ結果を確認
 # 結果の診断
-purrr::walk(1:5, \(i) {
+purrr::walk(1:6, \(i) {
   cat(paste("model:", i, "\n"))
   sdmTMB::sanity(fit[["Noto"]][[i]])
 })
 
 # 各モデルのAICを表示
-purrr::walk(1:5, \(i) {
+purrr::walk(1:6, \(i) {
   print(paste0("モデル", i, "のAIC: ", AIC(fit[["Noto"]][[i]])))
 })
 
